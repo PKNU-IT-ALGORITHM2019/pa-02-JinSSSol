@@ -11,7 +11,8 @@ typedef struct dot {
 
 int N;
 int tour[MAX];
-double getTour(Dot spot[], int k, double min);
+double min;
+double getTour(Dot spot[], int k, double curSum);
 double sumDistance(int N, Dot data[]);
 double distance(Dot data1, Dot data2);
 void swap(Dot spot[], int i, int j);
@@ -24,9 +25,9 @@ int main() {
 		spot[i].index = i;
 		fscanf(fp, "%d %d", &spot[i].x, &spot[i].y);
 	}
-	double min1 = sumDistance(N, spot);
+	min = sumDistance(N, spot);
 
-	printf("%lf\n", getTour(spot, 0, min1));
+	printf("%lf\n", getTour(spot, 0, 0));
 	printf("경로: [ ");
 	for (int i = 0; i < N - 1; i++) printf("%d, ", tour[i]);
 	printf("%d ]\n", tour[N - 1]);
@@ -35,21 +36,33 @@ int main() {
 	return 0;
 }
 
-double getTour(Dot spot[], int k, double min) {  //[0~k-1]까지는 순서가 정해져있고, [k~N-1]로 만들수 있는 투어의 거리 최솟값반환
-	if (k == N) {
-		return sumDistance(N, spot);
+
+double getTour(Dot spot[], int k, double curSum) { //[0~k-1]까지는 순서가 정해져있고, [k~N-1]로 만들수 있는 투어의 거리 최솟값반환
+	if (k > 1)
+		curSum += distance(spot[k - 2], spot[k - 1]);
+
+	if (min < curSum) {
+		return min;
 	}
-	//else
-	for (int i = k; i < N; i++) {
-		swap(spot, k, i);
-		double tmp = getTour(spot, k + 1, min);
-		if (min> tmp) {
-			min = tmp;
-			if (k == N - 1) for (int i = 0; i < N; i++) tour[i] = spot[i].index;
+
+	if (k == N) {
+		double sum = curSum + distance(spot[k - 1], spot[0]);
+		if (min > sum) {
+			min = sum;
+			for (int i = 0; i < N; i++) tour[i] = spot[i].index;
 		}
+		return min;
+	}
+
+	for (int i = k; i < N; i++) {
+		double tmp = curSum;
+		swap(spot, k, i);
+		getTour(spot, k + 1, curSum);
+		curSum = tmp;
 		swap(spot, k, i);
 	}
 	return min;
+
 }
 
 double sumDistance(int N, Dot data[]) //한 투어의 이동거리 구하기
